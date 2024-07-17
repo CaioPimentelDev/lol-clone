@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  login    String @unique
+  password String
+
+  profile Profile?
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id     String @id @default(uuid())
+  riotId String @unique
+  ea     Int @default(0)
+  rp     Int @default(0)
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  spoils Spoils[]
+  champions Champions[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Spoils {
+  id String @id @default(uuid())
+  type String
+  qnt Int
+  image String
+  name String
+
+  SpoilsRef String
+  profile Profile @relation(fields: [SpoilsRef], references: [riotId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+model Colection {
+  id String @id @default(uuid())
+}
+
+model Champions{
+  id String @id @default(uuid())
+  productName String
+  price Int
+
+  ShopRef String
+  profile Profile @relation(fields: [ShopRef], references: [riotId], onDelete: Cascade)
+
+}

@@ -1,113 +1,112 @@
-import Image from "next/image";
+"use client"
+
+import { InputP } from "@/components/form/inputP";
+import { ArrowRight, Check, Square, SquareCheck } from "lucide-react";
+import { useState } from "react";
+import { FaFacebook, FaApple, FaXbox } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+import Image from 'next/image'
+import Link from 'next/link'
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import axios from "axios";
+import { useRouter } from "next/navigation";
+
+const loginSchema = z.object({
+  login: z.string().regex(/^[a-zA-Z0-9]+$/, {
+    message: "Caracteres especiais não são permitidos no nome de usuário",
+  }),
+  password: z.string()
+})
+
+type LoginSchema = z.infer<typeof loginSchema>
 
 export default function Home() {
+  const [test, setTest] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+
+  const router = useRouter()
+
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginSchema>({
+    mode: "onBlur",
+    reValidateMode: "onSubmit",
+    resolver: zodResolver(loginSchema)
+  })
+
+  const handleLogin = async (data: LoginSchema) => {
+    try {
+      await axios.post("/api/login", data)
+
+      router.refresh()
+      router.push("/home")
+    } catch (error) {
+      console.log("não foi possivel fazer o login" + error)
+    }
+  }
+
+  const handlekeep = () => {
+    if (test == true) {
+      setTest(false)
+    } else {
+      setTest(true)
+    }
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div className="flex h-full w-full">
+      <div className="flex flex-col h-full w-[400px] items-center justify-center gap-4 px-[50px]">
+        <Image src="/logo.png" width={120} height={120} alt={"logo"} />
+        <form className="flex flex-col w-full items-center" onSubmit={handleSubmit(handleLogin)}>
+          <div className="flex flex-col w-full items-center justify-center gap-7 mt-[50px] mb-[165px]">
+            <div className="flex h-[26px] justify-end"><span className="font-bold text-[22px] text-[#343434] p-0 ">Fazer login</span></div>
+            <div className="flex flex-col w-full gap-4">
+              <InputP
+                {...register("login")}
+                page="login"
+                type="text"
+                id="login"
+                placeholder="nome de usuário"
+                error={!!errors.login?.message}
+                helperText={errors.login?.message}
+              />
+              <InputP
+                {...register("password")}
+                page="login"
+                type="password"
+                id="password"
+                placeholder="senha"
+                error={!!errors.password?.message}
+                helperText={errors.password?.message}
+              />
+            </div>
+            <div className="grid grid-cols-4 gap-2 w-full h-[30px]">
+              <button className="bg-blue-500 hover:bg-blue-600 text-white w-auto flex items-center justify-center rounded-md"><FaFacebook /></button>
+              <button className="border-[.1rem] hover:bg-gray-200  border-gray-200 text-white w-auto flex items-center justify-center rounded-md"><FcGoogle /></button>
+              <button className="bg-black hover:bg-gray-800 text-white w-auto flex items-center justify-center rounded-md"><FaApple /></button>
+              <button className="bg-green-700 hover:bg-green-800 text-white w-auto flex items-center justify-center rounded-md"><FaXbox /></button>
+            </div>
+            <div
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              className="flex w-full h-[20px] justify-start items-center gap-2 cursor-pointer" onClick={handlekeep}>
+              {test == false && <button><Square className="w-[17px] h-[17px] bg-[#ECECEC] text-transparent rounded" /></button>}
+              {test == true && <button className={`p-[2px]  rounded ${isHovered ? "bg-red-600" : "bg-red-500"}`}><Check className="w-[13px] h-[13px] text-white stroke-[3px]" /></button>}
+              <span
+                className="font-semibold text-sm" >Manter login</span>
+            </div>
+          </div>
+          <button className="bg-red-500 p-[15px] rounded-[20px] mb-[50px]"><ArrowRight className="h-[35px] w-[35px] text-white" /></button>
+        </form>
+        <div className="display:block flex flex-col items-center justify-center gap-2">
+          <Link className="font-extrabold text-[11px] text-[#6b6b6b]" href={'/sign-up'}>NÃO CONSEGUE INICIAR SESSÃO?</Link>
+          <Link className="font-extrabold text-[11px] text-[#6b6b6b]" href={'/sign-up'}>CRIAR CONTA</Link>
+          <span className="font-extrabold text-[9px] text-[#adadad] text-center pt-2">ESTE APLICATIVO É PROTEGIDO POR HCAPTCHA. A POLÍTICA DE PRIVACIDADE E OS TERMOS DE SERVIÇO SÃO APLICÁVEIS.</span>
         </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <div className="flex-1 relative">
+        <Image className="object-cover object-center" src={"/wallpaper.jpg"} fill={true} alt={"wallpaper"} />
       </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+    </div>
+  )
 }
